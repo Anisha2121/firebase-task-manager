@@ -7,7 +7,6 @@ import firebaseConfig from './config/firebaseConfig';
 import { initializeApp } from 'firebase/app';
 import { useEffect, useState } from 'react';
 
-initializeApp(firebaseConfig);
 
 function App() {
 
@@ -18,14 +17,16 @@ function App() {
   useEffect(() => {
         if(isUser) {
           navigate("/dashboard");
+        } else {
+          navigate("/")
         }
-    },[])
+    },[isUser])
   return (
     <div className="App">
       <Routes>
           <Route exact path="/" element={<Login isUserProp={setUser}/>} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/signup" element={<Signup  isUserProp={setUser}/>} />
+          <Route path="/dashboard" element={<Dashboard isUserProp={setUser}/>} />
         </Routes>
     </div>
   );

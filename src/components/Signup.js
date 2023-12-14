@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { Link } from 'react-router-dom';
+import  db  from '../config/firebaseConfig';  
+import { ref, set } from 'firebase/database';
 
-const Signup = ({ history }) => {
+
+const Signup = (props ) => {
     const [ name, setName ] = useState("");
     const [ email, setEmail ] = useState("");
     const [ password, setPassword ] = useState("");
@@ -15,19 +18,39 @@ const Signup = ({ history }) => {
     //         history.push('/dashboard')
     //     }
     // },[history])
-
+    const setUser = () => {
+        props.isUserProp(true);
+    }
     const onSignup = () => {
         setLoading(true);
         const auth = getAuth();
-
         createUserWithEmailAndPassword(auth, email, password)
-            .then(() => {
-                updateProfile(auth.currentUser, { displayName: name })
-                    .then(() => history.push('/'))
-                    .catch((e) => alert(e.message))
-            }).catch((e) => alert(e.message))
-            .finally(() => setLoading(false))
+        .then((userCredential) => {setUser()
+        //     const user = userCredential.user;
+        //     const uid = user.uid;
+
+        //     // Write user data to the Realtime Database
+        //     const userRef = ref(db, `Users/${uid}`);
+        //     set(userRef, {
+        //         email: email,
+        //         displayName: name,
+        //     })
+        //     .then(() => {
+        //         updateProfile(auth.currentUser, { displayName: name })
+        //             .then(() => history.push('/'))
+        //             .catch((e) => alert(e.message));
+        //     })
+        //     .catch((e) => alert(e.message))
+        //     .finally(() => setLoading(false));
+        //
+     }
+        )
+        .catch((e) => {
+            alert(e.message);
+            setLoading(false);
+        });
     }
+
 
     return (
         <div className="w-full h-screen bg-gradient-to-r from-yellow-200 via-red-500 to-pink-500 flex justify-center items-center">

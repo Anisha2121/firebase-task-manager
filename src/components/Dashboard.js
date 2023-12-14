@@ -1,16 +1,20 @@
 import { getAuth, signOut } from '@firebase/auth';
 import React, { useEffect } from 'react';
 
-const Dashboard = ({ history }) => {
+const Dashboard = ( props ) => {
+    const setUser = () => {
+        props.isUserProp(false);
+    }
     const logout = () => {
+        
         signOut(auth)
             .then(() => {
                 localStorage.removeItem('token')
-                history.push('/')
+                setUser();
             })
             .catch((e) => alert(e.message))
     }
-
+   
     // useEffect(() => {
     //     const token = localStorage.getItem('token');
 
