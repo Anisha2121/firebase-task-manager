@@ -26,6 +26,7 @@ const Signup = (props ) => {
                 const docRef = await addDoc(collection(firestore, 'users'), {
                   uid: userId,
                   role: "user",
+                  name: name,
                 });
                 const docId = docRef.id;
                 if(docId) {

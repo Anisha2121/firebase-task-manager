@@ -1,7 +1,8 @@
 import { getAuth, signOut } from '@firebase/auth';
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, addDoc } from '@firebase/firestore';
+import { collection, getDocs, addDoc, query, orderBy } from '@firebase/firestore';
 import firestore from '../config/firebaseConfig';
+
 
 const AdminDashboard = (props) => {
   const [tasks, setTasks] = useState([]);
@@ -16,6 +17,8 @@ const AdminDashboard = (props) => {
   });
   const [showCreateForm, setShowCreateForm] = useState(false);
 
+  const [users, setUsers] = useState([]);
+
   const setAdmin = () => {
     props.isAdminProp(false);
   };
@@ -28,6 +31,8 @@ const AdminDashboard = (props) => {
       })
       .catch((e) => alert(e.message));
   };
+
+  
 
   const createTask = async () => {
     try {
@@ -63,7 +68,20 @@ const AdminDashboard = (props) => {
       }
     };
 
+    const fetchUsers = async () => {
+        try {
+          const usersCollection = collection(firestore, 'users');
+          const usersSnapshot = await getDocs(query(usersCollection, orderBy('uid')));
+          const usersData = usersSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+          setUsers(usersData);
+          console.log(usersData)
+        } catch (error) {
+          console.error('Error fetching users:', error.message);
+        }
+      };
+
     fetchTasks();
+    fetchUsers();
   }, []);
 
   const handleInputChange = (e) => {
@@ -194,13 +212,19 @@ const AdminDashboard = (props) => {
                 </label>
                 <label className="block mb-2">
                   Assignee:
-                  <input
-                    type="text"
+                  <select
                     name="assignee"
                     value={newTask.assignee}
                     onChange={handleInputChange}
                     className="border rounded w-full p-2"
-                  />
+                  >
+                    <option value="">Select Assignee</option>
+                    {users && users.map((users) => (
+                      <option key={users.id} value={users.uid}>
+                        {users.name}
+                      </option>
+                    ))}
+                  </select>
                 </label>
                 <button
                   type="button"
