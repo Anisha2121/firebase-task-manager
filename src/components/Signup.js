@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import React, { useState } from 'react';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { Link } from 'react-router-dom';
-import  db  from '../config/firebaseConfig';  
-import { ref, set } from 'firebase/database';
+import { collection, addDoc } from 'firebase/firestore';
+import firestore from '../config/firebaseConfig';
 
 
 const Signup = (props ) => {
@@ -11,40 +11,32 @@ const Signup = (props ) => {
     const [ password, setPassword ] = useState("");
     const [ loading, setLoading ] = useState(false);
 
-    // useEffect(() => {
-    //     const token = localStorage.getItem('token');
-
-    //     if (token) {
-    //         history.push('/dashboard')
-    //     }
-    // },[history])
     const setUser = () => {
         props.isUserProp(true);
     }
+
     const onSignup = () => {
         setLoading(true);
         const auth = getAuth();
         createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {setUser()
-        //     const user = userCredential.user;
-        //     const uid = user.uid;
-
-        //     // Write user data to the Realtime Database
-        //     const userRef = ref(db, `Users/${uid}`);
-        //     set(userRef, {
-        //         email: email,
-        //         displayName: name,
-        //     })
-        //     .then(() => {
-        //         updateProfile(auth.currentUser, { displayName: name })
-        //             .then(() => history.push('/'))
-        //             .catch((e) => alert(e.message));
-        //     })
-        //     .catch((e) => alert(e.message))
-        //     .finally(() => setLoading(false));
-        //
-     }
-        )
+        .then(async (userCredential) => {
+            const user = userCredential.user;
+            const userId = user.uid;
+            try {
+                const docRef = await addDoc(collection(firestore, 'users'), {
+                  uid: userId,
+                  role: "user",
+                });
+                const docId = docRef.id;
+                if(docId) {
+                    setUser();
+                } else {
+                    console.log("doc id is null");
+                }
+              } catch (e) {
+                console.error('Error adding document: ', e);
+              }
+        })
         .catch((e) => {
             alert(e.message);
             setLoading(false);

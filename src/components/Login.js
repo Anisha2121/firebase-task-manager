@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { Link } from 'react-router-dom';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import firestore from '../config/firebaseConfig';
 
 const Login = (props) => {
     const [ email, setEmail ] = useState("");
@@ -18,13 +20,32 @@ const Login = (props) => {
         props.isUserProp(true);
     }
 
+    const setAdmin = () => {
+        props.isAdminProp(true);
+    }
+
     const onLogin = () => {
         setLoading(true)
         const auth = getAuth();
         signInWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-                localStorage.setItem('token', userCredential._tokenResponse.idToken);
-                setUser();
+            .then(async (userCredential) => {
+                const user = userCredential.user;
+                const userId = user.uid;
+                try {
+                    const queryStatement = query(collection(firestore, 'users'), where('uid', '==', userId));
+                    const querySnapshot = await getDocs(queryStatement);
+                    const usersRole = querySnapshot.docs.map((doc) => ({
+                        id: doc.id,
+                        ...doc.data(),
+                    }));
+                    if(usersRole[0].role === "user") {
+                        setUser();
+                    } else if(usersRole[0].role === "admin") {
+                        setAdmin();
+                    }
+                } catch (e) {
+                    alert(e.message);
+                }
             })
             .catch(e => alert(e.message))
             .finally(() => setLoading(false))

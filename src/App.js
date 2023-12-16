@@ -1,11 +1,10 @@
 import './App.css';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import {Routes, Route, useNavigate } from 'react-router-dom';
 import Login from './components/Login';
 import Signup from './components/Signup';
-import Dashboard from './components/Dashboard';
-import firebaseConfig from './config/firebaseConfig';
-import { initializeApp } from 'firebase/app';
+import UserDashboard from './components/UserDashboard';
 import { useEffect, useState } from 'react';
+import AdminDashboard from './components/AdminDashboard';
 
 
 function App() {
@@ -16,17 +15,21 @@ function App() {
 
   useEffect(() => {
         if(isUser) {
-          navigate("/dashboard");
+          navigate("/user-dashboard");
+        } else if(isAdmin) {
+          navigate("/admin-dashboard")
         } else {
           navigate("/")
         }
-    },[isUser])
+    },[isUser, isAdmin]);
+  
   return (
     <div className="App">
       <Routes>
-          <Route exact path="/" element={<Login isUserProp={setUser}/>} />
-          <Route path="/signup" element={<Signup  isUserProp={setUser}/>} />
-          <Route path="/dashboard" element={<Dashboard isUserProp={setUser}/>} />
+          <Route exact path="/" element={<Login isUserProp={setUser} isAdminProp={setAdmin}/>} />
+          <Route path="/signup" element={<Signup  isUserProp={setUser} isAdminProp={setAdmin}/>} />
+          <Route path="/user-dashboard" element={<UserDashboard isUserProp={setUser}/>} />
+          <Route path="/admin-dashboard" element={<AdminDashboard isAdminProp={setAdmin}/>} />
         </Routes>
     </div>
   );

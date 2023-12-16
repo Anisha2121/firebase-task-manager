@@ -1,12 +1,12 @@
 import { getAuth, signOut } from '@firebase/auth';
-import React, { useEffect } from 'react';
+import React from 'react';
 
-const Dashboard = ( props ) => {
+const UserDashboard = ( props ) => {
     const setUser = () => {
         props.isUserProp(false);
     }
+
     const logout = () => {
-        
         signOut(auth)
             .then(() => {
                 localStorage.removeItem('token')
@@ -14,23 +14,14 @@ const Dashboard = ( props ) => {
             })
             .catch((e) => alert(e.message))
     }
-   
-    // useEffect(() => {
-    //     const token = localStorage.getItem('token');
-
-    //     if (!token) {
-    //         history.push('/')
-    //     }
-    // },[history])
 
     const auth = getAuth();
-    const user = auth.currentUser;
 
     return (
         <div className="w-full h-screen bg-gradient-to-r from-yellow-200 via-red-500 to-pink-500 flex justify-center items-center">
             <div className="w-96 bg-white shadow-lg">
                 <div className="m-5">
-                    <p>{user && user.displayName}</p>
+                    <p>User Dashboard</p>
                 </div>
                 <div className="m-5">
                     <button
@@ -45,4 +36,4 @@ const Dashboard = ( props ) => {
     )
 }
 
-export default Dashboard;
+export default UserDashboard;
