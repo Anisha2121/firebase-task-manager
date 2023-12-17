@@ -114,16 +114,19 @@ const AdminDashboard = (props) => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-r from-yellow-200 via-red-500 to-pink-500 flex flex-col items-center justify-center">
-      <div className="bg-white w-full max-w-2xl p-8 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-semibold mb-6 text-center">Admin Dashboard</h1>
+  return ( <>
+        
         <button
           onClick={logout}
-          className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-200 text-white px-8 py-3 rounded-full text-lg font-bold mb-6 w-full"
+          className="bg-blue-500 text-white px-8 py-3 rounded-full text-lg font-bold mb-6 w-small"
+          style={{ position: 'absolute', top: 0, right: 0 }}
         >
           Logout
         </button>
+  
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
+      <div className="">
+        <h1 className="text-3xl font-semibold mb-6 text-center">Admin Dashboard</h1>
         <div className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Task List:</h2>
           <table className="w-full border-collapse border border-gray-300">
@@ -140,96 +143,120 @@ const AdminDashboard = (props) => {
               </tr>
             </thead>
             <tbody>
-  {tasks.map((task, index) => (
-    <tr key={task.id} className="text-center">
-      <td className="border p-3">{editableTask && editableTask.index === index ? <input type="text" name="projectId" value={editableTask.projectId} onChange={handleInputChange} /> : task.projectId}</td>
-      <td className="border p-3">{editableTask && editableTask.index === index ? <input type="text" name="taskName" value={editableTask.taskName} onChange={handleInputChange} /> : task.taskName}</td>
-      <td className="border p-3">{editableTask && editableTask.index === index ? <input type="date" name="startDate" value={editableTask.startDate} onChange={handleInputChange} /> : task.startDate}</td>
-      <td className="border p-3">{editableTask && editableTask.index === index ? <input type="date" name="endDate" value={editableTask.endDate} onChange={handleInputChange} /> : task.endDate}</td>
-      <td className="border p-3">
-  {editableTask && editableTask.index === index ? (
-    <select
-      name="priority"
-      value={editableTask.priority}
-      onChange={handleInputChange}
-      className="border rounded w-full p-2"
-    >
-      <option value="">Select Priority</option>
-      <option value="high">High</option>
-      <option value="medium">Medium</option>
-      <option value="low">Low</option>
-    </select>
-  ) : (
-    task.priority
-  )}
-</td>
-<td className="border p-3">
-  {editableTask && editableTask.index === index ? (
-    <select
-      name="status"
-      value={editableTask.status}
-      onChange={handleInputChange}
-      className="border rounded w-full p-2"
-    >
-      <option value="">Select Status</option>
-      <option value="todo">To-Do</option>
-      <option value="inProgress">In Progress</option>
-      <option value="completed">Completed</option>
-    </select>
-  ) : (
-    task.status
-  )}
-</td>
-<td className="border p-3">
-  {editableTask && editableTask.index === index ? (
-    <select
-      name="assignee"
-      value={editableTask.assignee}
-      onChange={handleInputChange}
-      className="border rounded w-full p-2"
-    >
-      <option value="">Select Assignee</option>
-      {users.map((user) => (
-        <option key={user.id} value={user.name}>
-          {user.name}
-        </option>
-      ))}
-    </select>
-  ) : (
-    task.assignee
-  )}
-</td>
-
-      <td className="border p-3">
-        {editableTask && editableTask.index === index ? (
-          <button
-            onClick={() => handleSaveEdit(index)}
-            className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-200 text-white px-4 py-2 rounded-full text-sm font-bold"
-          >
-            Save
-          </button>
-        ) : (
-          <button
-            onClick={() => handleEdit(index)}
-            className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-200 text-white px-4 py-2 rounded-full text-sm font-bold"
-          >
-            Edit
-          </button>
-        )}
-      </td>
-    </tr>
-  ))}
-</tbody>
+              {tasks.map((task, index) => (
+                <tr key={task.id} className="text-center">
+                  <td className="border p-3">
+                    {editableTask && editableTask.index === index ? (
+                      <input type="text" name="projectId" value={editableTask.projectId} onChange={handleInputChange} />
+                    ) : (
+                      task.projectId
+                    )}
+                  </td>
+                  <td className="border p-3">
+                    {editableTask && editableTask.index === index ? (
+                      <input type="text" name="taskName" value={editableTask.taskName} onChange={handleInputChange} />
+                    ) : (
+                      task.taskName
+                    )}
+                  </td>
+                  <td className="border p-3">
+                    {editableTask && editableTask.index === index ? (
+                      <input type="date" name="startDate" value={editableTask.startDate} onChange={handleInputChange} />
+                    ) : (
+                      task.startDate
+                    )}
+                  </td>
+                  <td className="border p-3">
+                    {editableTask && editableTask.index === index ? (
+                      <input type="date" name="endDate" value={editableTask.endDate} onChange={handleInputChange} />
+                    ) : (
+                      task.endDate
+                    )}
+                  </td>
+                  <td className="border p-3">
+                    {editableTask && editableTask.index === index ? (
+                      <select
+                        name="priority"
+                        value={editableTask.priority}
+                        onChange={handleInputChange}
+                        className="border rounded w-full p-2"
+                      >
+                        <option value="">Select Priority</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                      </select>
+                    ) : (
+                      task.priority
+                    )}
+                  </td>
+                  <td className="border p-3">
+                    {editableTask && editableTask.index === index ? (
+                      <select
+                        name="status"
+                        value={editableTask.status}
+                        onChange={handleInputChange}
+                        className="border rounded w-full p-2"
+                      >
+                        <option value="">Select Status</option>
+                        <option value="todo">To-Do</option>
+                        <option value="inProgress">In Progress</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                    ) : (
+                      task.status
+                    )}
+                  </td>
+                  <td className="border p-3">
+                    {editableTask && editableTask.index === index ? (
+                      <select
+                        name="assignee"
+                        value={editableTask.assignee}
+                        onChange={handleInputChange}
+                        className="border rounded w-full p-2"
+                      >
+                        <option value="">Select Assignee</option>
+                        {users.map((user) => (
+                          <option key={user.id} value={user.name}>
+                            {user.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      task.assignee
+                    )}
+                  </td>
+                  <td className="border p-3">
+                    {editableTask && editableTask.index === index ? (
+                      <button
+                        onClick={() => handleSaveEdit(index)}
+                        className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-bold"
+                      >
+                        Save
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleEdit(index)}
+                        className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-bold"
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
         <div>
           {showCreateForm ? (
             <div>
               <h2 className="text-2xl font-semibold mb-4">Create Task</h2>
-              <form>
+              <form onSubmit={createTask}>
                 <label className="block mb-2">
                   Project ID:
-                  <input
+                  <input 
+                   required
                     type="text"
                     name="projectId"
                     value={newTask.projectId}
@@ -240,6 +267,7 @@ const AdminDashboard = (props) => {
                 <label className="block mb-2">
                  Task Name
                   <input
+                  required
                     type="text"
                     name="taskName"
                     value={newTask.taskName}
@@ -250,6 +278,7 @@ const AdminDashboard = (props) => {
                 <label className="block mb-2">
                   Start Date:
                   <input
+                  required
                     type="date"
                     name="startDate"
                     value={newTask.startDate}
@@ -260,6 +289,7 @@ const AdminDashboard = (props) => {
                 <label className="block mb-2">
                   End Date:
                   <input
+                  required
                     type="date"
                     name="endDate"
                     value={newTask.endDate}
@@ -270,6 +300,7 @@ const AdminDashboard = (props) => {
                 <label className="block mb-2">
                   Priority:
                   <select
+                  required
                     name="priority"
                     value={newTask.priority}
                     onChange={handleInputChange}
@@ -284,6 +315,7 @@ const AdminDashboard = (props) => {
                 <label className="block mb-2">
                   Status:
                   <select
+                  required
                     name="status"
                     value={newTask.status}
                     onChange={handleInputChange}
@@ -298,6 +330,7 @@ const AdminDashboard = (props) => {
                 <label className="block mb-2">
                   Assignee:
                   <select
+                  required
                     name="assignee"
                     value={editableTask ? editableTask.assignee : newTask.assignee}
                     onChange={handleInputChange}
@@ -313,25 +346,41 @@ const AdminDashboard = (props) => {
                   </select>
                 </label>
                 <button
-                  type="button"
-                  onClick={createTask}
-                  className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-200 text-white px-6 py-2 rounded-full text-lg font-bold"
+                  type="submit"
+                  
+                  className="bg-blue-500 text-white px-6 py-2 rounded-full text-lg font-bold"
                 >
                   Create Task
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowCreateForm(false)}
+                  className="bg-blue-500 text-white px-6 py-2 rounded-full text-lg font-bold"
+                >
+                  cancel Task
+                </button>
+                
               </form>
             </div>
           ) : (
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-200 text-white px-8 py-3 rounded-full text-lg font-bold"
-            >
-              Open Create Task Form
-            </button>
+            
+                <button
+                  type="button"
+                  onClick={() => setShowCreateForm(true)}
+                  className="bg-blue-500 text-white px-6 py-2 rounded-full text-lg font-bold"
+                >
+                  Create Task Form
+                </button>
+               
+          
+
+                
           )}
         </div>
       </div>
     </div>
+    </>
   );
 };
 
