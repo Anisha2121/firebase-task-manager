@@ -1,10 +1,22 @@
-import { getAuth, signOut } from '@firebase/auth';
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, where, query } from '@firebase/firestore';
+import {
+  getAuth,
+  signOut
+} from '@firebase/auth';
+import {
+  collection,
+  getDocs,
+  where,
+  query,
+  updateDoc,
+  doc
+} from '@firebase/firestore';
 import firestore from '../config/firebaseConfig';
 
 const UserDashboard = (props) => {
   const [userTasks, setUserTasks] = useState([]);
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editedStatus, setEditedStatus] = useState('');
 
   const setUser = () => {
     props.isUserProp(false);
@@ -21,22 +33,59 @@ const UserDashboard = (props) => {
 
   const auth = getAuth();
 
+  const handleEditClick = (taskId, currentStatus) => {
+    setEditingTaskId(taskId);
+    setEditedStatus(currentStatus);
+  };
+  const handleStatusChange = (newStatus) => {
+    setEditedStatus(newStatus);
+  };
+
+  const handleSaveClick = async (taskId) => {
+    try {
+      // Update the status in the Firestore database
+      const taskRef = doc(firestore, 'tasks', taskId);
+      await updateDoc(taskRef, {
+        status: editedStatus
+      });
+
+      // Update the local state with the edited status
+      setUserTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === taskId ? {
+            ...task,
+            status: editedStatus
+          } : task
+        )
+      );
+
+      // Clear the editing state
+      setEditingTaskId(null);
+      setEditedStatus('');
+    } catch (error) {
+      console.error('Error updating task status:', error.message);
+    }
+  };
+
   useEffect(() => {
     const fetchUserTasks = async () => {
       try {
         const user = auth.currentUser;
-        console.log(user)
-        const usersCollection = collection(firestore, 'users')
+        const usersCollection = collection(firestore, 'users');
         const userQuery = query(usersCollection, where('uid', '==', user.uid));
         const usersSnapshot = await getDocs(userQuery);
-        const usersData = usersSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        console.log("user name:", usersData);
+        const usersData = usersSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data()
+        }));
 
         const tasksCollection = collection(firestore, 'tasks');
         const userTasksQuery = await query(tasksCollection, where('assignee', '==', usersData[0].name));
         const userTasksSnapshot = await getDocs(userTasksQuery);
-        const userTasksData = userTasksSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        console.log("user tasks data:", userTasksData);
+        const userTasksData = userTasksSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data()
+        }));
 
         setUserTasks(userTasksData);
       } catch (error) {
@@ -48,50 +97,83 @@ const UserDashboard = (props) => {
   }, [auth]);
 
   return (
-    <div className="w-full h-screen bg-gradient-to-r from-yellow-200 via-red-500 to-pink-500 flex justify-center items-center">
-      <div className="w-96 bg-white shadow-lg">
-        <div className="m-5">
-          <p>User Dashboard</p>
+    <>
+    <button
+    onClick={logout}
+    className="bg-blue-500 text-white px-5 py-2 rounded-semi text-lg font-bold mb-6 w-small"
+    style={{ position: 'absolute', top: 0, right: 0 }}
+  >
+    Logout
+  </button>
+    <div className="w-full h-screen bg-gray-100 flex flex-col">
+      <header className="bg-blue-500 text-white py-2">
+        <div className="container mx-auto">
+          <h1 className="text-2xl font-bold">User Dashboard</h1>
         </div>
-        <div className="m-5">
-          <button
-            onClick={logout}
-            className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-200 text-white px-10 py-2 rounded text-xl font-bold"
-          >
-            Logout
-          </button>
-        </div>
-        <div className="m-5">
-          <p>User Tasks:</p>
-          <table className="w-full border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border p-3">Project ID</th>
-                <th className="border p-3">Task Name</th>
-                <th className="border p-3">Start Date</th>
-                <th className="border p-3">End Date</th>
-                <th className="border p-3">Priority</th>
-                <th className="border p-3">Status</th>
-                <th className="border p-3">Assignee</th>
-              </tr>
-            </thead>
-            <tbody>
-              {userTasks.map((task) => (
-                <tr key={task.id} className="text-center">
-                  <td className="border p-3">{task.projectId}</td>
-                  <td className="border p-3">{task.taskName}</td>
-                  <td className="border p-3">{task.startDate}</td>
-                  <td className="border p-3">{task.endDate}</td>
-                  <td className="border p-3">{task.priority}</td>
-                  <td className="border p-3">{task.status}</td>
-                  <td className="border p-3">{task.assignee}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      </header>
+      <main className="flex-1 container mx-auto mt-1 flex justify-center">
+  <div className="bg-white p-4 rounded shadow mt-4 h-auto"> 
+    <table className="w-full border-collapse border border-gray-300">
+                <thead>
+                  <tr className="bg-blue-500 text-white">
+                    <th className="py-2 px-4">Project ID</th>
+                    <th className="py-2 px-4">Task Name</th>
+                    <th className="py-2 px-4">Start Date</th>
+                    <th className="py-2 px-4">End Date</th>
+                    <th className="py-2 px-4">Priority</th>
+                    <th className="py-2 px-4">Status</th>
+                    <th className="py-2 px-4">Assignee</th>
+                    <th className="py-2 px-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {userTasks.map((task) => (
+                    <tr key={task.id} className="text-center">
+                      <td className="border py-2 px-4">{task.projectId}</td>
+                      <td className="border py-2 px-4">{task.taskName}</td>
+                      <td className="border py-2 px-4">{task.startDate}</td>
+                      <td className="border py-2 px-4">{task.endDate}</td>
+                      <td className="border py-2 px-4">{task.priority}</td>
+                      <td className="border py-2 px-4">
+                        {editingTaskId === task.id ? (
+                          <select
+                            value={editedStatus}
+                            onChange={(e) => handleStatusChange(e.target.value)}
+                          >
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="On Hold">On Hold</option>
+                            <option value="to do">To Do</option>
+                          </select>
+                        ) : (
+                          task.status
+                        )}
+                      </td>
+                      <td className="border py-2 px-4">{task.assignee}</td>
+                      <td className="border py-2 px-4">
+  <button
+    onClick={() => handleEditClick(task.id, task.status)}
+    className="bg-blue-500 text-white px-2 py-1 rounded"
+  >
+    Edit
+  </button>
+  {editingTaskId === task.id && (
+    <button
+      onClick={() => handleSaveClick(task.id)}
+      className="bg-green-500 text-white px-2 py-1 rounded ml-2"
+    >
+      Save
+    </button>
+  )}
+</td>
+                    </tr>
+                  ))}
+                </tbody>
+                </table>
     </div>
+  </main>
+</div>
+    </>
   );
 };
 
