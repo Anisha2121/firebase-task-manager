@@ -1,8 +1,7 @@
 import { getAuth, signOut } from '@firebase/auth';
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, addDoc, query, orderBy } from '@firebase/firestore';
+import { collection, getDocs, addDoc, query, orderBy,setDoc,doc } from '@firebase/firestore';
 import firestore from '../config/firebaseConfig';
-
 
 const AdminDashboard = (props) => {
   const [tasks, setTasks] = useState([]);
@@ -16,8 +15,8 @@ const AdminDashboard = (props) => {
     assignee: '',
   });
   const [showCreateForm, setShowCreateForm] = useState(false);
-
   const [users, setUsers] = useState([]);
+  const [editableTask, setEditableTask] = useState(null);
 
   const setAdmin = () => {
     props.isAdminProp(false);
@@ -31,8 +30,6 @@ const AdminDashboard = (props) => {
       })
       .catch((e) => alert(e.message));
   };
-
-  
 
   const createTask = async () => {
     try {
@@ -49,8 +46,32 @@ const AdminDashboard = (props) => {
         assignee: '',
       });
       setShowCreateForm(false);
+      setEditableTask(null);
     } catch (error) {
       console.error('Error creating task:', error.message);
+    }
+  };
+
+  const handleEdit = (index) => {
+    const taskToEdit = { ...tasks[index], index };
+    setEditableTask(taskToEdit);
+  };
+  
+
+  const handleSaveEdit = async () => {
+    try {
+      
+      const editedTask = { ...editableTask };
+      const tasksCollection = collection(firestore, 'tasks');
+      await setDoc(doc(firestore, 'tasks', tasks[editableTask.index].id), editedTask);
+      setTasks((prevTasks) => {
+        const updatedTasks = [...prevTasks];
+        updatedTasks[editableTask.index] = editedTask;
+        return updatedTasks;
+      });
+      setEditableTask(null);
+    } catch (error) {
+      console.error('Error saving edited task:', error.message);
     }
   };
 
@@ -69,16 +90,16 @@ const AdminDashboard = (props) => {
     };
 
     const fetchUsers = async () => {
-        try {
-          const usersCollection = collection(firestore, 'users');
-          const usersSnapshot = await getDocs(query(usersCollection, orderBy('uid')));
-          const usersData = usersSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-          setUsers(usersData);
-          console.log(usersData)
-        } catch (error) {
-          console.error('Error fetching users:', error.message);
-        }
-      };
+      try {
+        const usersCollection = collection(firestore, 'users');
+        const usersSnapshot = await getDocs(query(usersCollection, orderBy('uid')));
+        const usersData = usersSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setUsers(usersData);
+        console.log(usersData);
+      } catch (error) {
+        console.error('Error fetching users:', error.message);
+      }
+    };
 
     fetchTasks();
     fetchUsers();
@@ -86,7 +107,11 @@ const AdminDashboard = (props) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewTask((prevTask) => ({ ...prevTask, [name]: value }));
+    if (editableTask !== null) {
+      setEditableTask((prevTask) => ({ ...prevTask, [name]: value }));
+    } else {
+      setNewTask((prevTask) => ({ ...prevTask, [name]: value }));
+    }
   };
 
   return (
@@ -115,26 +140,86 @@ const AdminDashboard = (props) => {
               </tr>
             </thead>
             <tbody>
-              {tasks.map((task) => (
-                <tr key={task.id} className="text-center">
-                  <td className="border p-3">{task.projectId}</td>
-                  <td className="border p-3">{task.taskName}</td>
-                  <td className="border p-3">{task.startDate}</td>
-                  <td className="border p-3">{task.endDate}</td>
-                  <td className="border p-3">{task.priority}</td>
-                  <td className="border p-3">{task.status}</td>
-                  <td className="border p-3">{task.assignee}</td>
-                  <td className="border p-3">
-                    <button
-                     // onClick={() => handleEdit(task.id)} // Implement handleEdit
-                      className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-200 text-white px-4 py-2 rounded-full text-sm font-bold"
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+  {tasks.map((task, index) => (
+    <tr key={task.id} className="text-center">
+      <td className="border p-3">{editableTask && editableTask.index === index ? <input type="text" name="projectId" value={editableTask.projectId} onChange={handleInputChange} /> : task.projectId}</td>
+      <td className="border p-3">{editableTask && editableTask.index === index ? <input type="text" name="taskName" value={editableTask.taskName} onChange={handleInputChange} /> : task.taskName}</td>
+      <td className="border p-3">{editableTask && editableTask.index === index ? <input type="date" name="startDate" value={editableTask.startDate} onChange={handleInputChange} /> : task.startDate}</td>
+      <td className="border p-3">{editableTask && editableTask.index === index ? <input type="date" name="endDate" value={editableTask.endDate} onChange={handleInputChange} /> : task.endDate}</td>
+      <td className="border p-3">
+  {editableTask && editableTask.index === index ? (
+    <select
+      name="priority"
+      value={editableTask.priority}
+      onChange={handleInputChange}
+      className="border rounded w-full p-2"
+    >
+      <option value="">Select Priority</option>
+      <option value="high">High</option>
+      <option value="medium">Medium</option>
+      <option value="low">Low</option>
+    </select>
+  ) : (
+    task.priority
+  )}
+</td>
+<td className="border p-3">
+  {editableTask && editableTask.index === index ? (
+    <select
+      name="status"
+      value={editableTask.status}
+      onChange={handleInputChange}
+      className="border rounded w-full p-2"
+    >
+      <option value="">Select Status</option>
+      <option value="todo">To-Do</option>
+      <option value="inProgress">In Progress</option>
+      <option value="completed">Completed</option>
+    </select>
+  ) : (
+    task.status
+  )}
+</td>
+<td className="border p-3">
+  {editableTask && editableTask.index === index ? (
+    <select
+      name="assignee"
+      value={editableTask.assignee}
+      onChange={handleInputChange}
+      className="border rounded w-full p-2"
+    >
+      <option value="">Select Assignee</option>
+      {users.map((user) => (
+        <option key={user.id} value={user.name}>
+          {user.name}
+        </option>
+      ))}
+    </select>
+  ) : (
+    task.assignee
+  )}
+</td>
+
+      <td className="border p-3">
+        {editableTask && editableTask.index === index ? (
+          <button
+            onClick={() => handleSaveEdit(index)}
+            className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-200 text-white px-4 py-2 rounded-full text-sm font-bold"
+          >
+            Save
+          </button>
+        ) : (
+          <button
+            onClick={() => handleEdit(index)}
+            className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-200 text-white px-4 py-2 rounded-full text-sm font-bold"
+          >
+            Edit
+          </button>
+        )}
+      </td>
+    </tr>
+  ))}
+</tbody>
           </table>
         </div>
         <div>
@@ -214,16 +299,17 @@ const AdminDashboard = (props) => {
                   Assignee:
                   <select
                     name="assignee"
-                    value={newTask.assignee}
+                    value={editableTask ? editableTask.assignee : newTask.assignee}
                     onChange={handleInputChange}
                     className="border rounded w-full p-2"
                   >
                     <option value="">Select Assignee</option>
-                    {users && users.map((users) => (
-                      <option key={users.id} value={users.uid}>
-                        {users.name}
-                      </option>
-                    ))}
+                    {users &&
+                      users.map((user) => (
+                        <option key={user.id} value={user.name}>
+                          {user.name}
+                        </option>
+                      ))}
                   </select>
                 </label>
                 <button
