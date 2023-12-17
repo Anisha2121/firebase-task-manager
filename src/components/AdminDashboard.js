@@ -1,6 +1,6 @@
 import { getAuth, signOut } from '@firebase/auth';
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, addDoc, query, orderBy,setDoc,doc } from '@firebase/firestore';
+import { collection, getDocs, addDoc, query, orderBy,updateDoc,doc,deleteDoc } from '@firebase/firestore';
 import firestore from '../config/firebaseConfig';
 
 const AdminDashboard = (props) => {
@@ -31,8 +31,9 @@ const AdminDashboard = (props) => {
       .catch((e) => alert(e.message));
   };
 
-  const createTask = async () => {
+  const createTask = async (event) => {
     try {
+        event.preventDefault();
       const tasksCollection = collection(firestore, 'tasks');
       const newTaskRef = await addDoc(tasksCollection, newTask);
       setTasks([...tasks, { id: newTaskRef.id, ...newTask }]);
@@ -60,10 +61,13 @@ const AdminDashboard = (props) => {
 
   const handleSaveEdit = async () => {
     try {
-      
       const editedTask = { ...editableTask };
       const tasksCollection = collection(firestore, 'tasks');
-      await setDoc(doc(firestore, 'tasks', tasks[editableTask.index].id), editedTask);
+      const taskDocRef = doc(firestore, 'tasks', tasks[editableTask.index].id);
+  
+      
+      await updateDoc(taskDocRef, editedTask);
+  
       setTasks((prevTasks) => {
         const updatedTasks = [...prevTasks];
         updatedTasks[editableTask.index] = editedTask;
@@ -72,6 +76,25 @@ const AdminDashboard = (props) => {
       setEditableTask(null);
     } catch (error) {
       console.error('Error saving edited task:', error.message);
+    }
+  };
+
+  const handleDelete = async (index, taskId) => {
+    try {
+      const tasksCollection = collection(firestore, 'tasks');
+      const taskDocRef = doc(firestore, 'tasks', taskId);
+
+     
+      await deleteDoc(taskDocRef);
+
+      // Update the UI by removing the task from the tasks state
+      setTasks((prevTasks) => {
+        const updatedTasks = [...prevTasks];
+        updatedTasks.splice(index, 1);
+        return updatedTasks;
+      });
+    } catch (error) {
+      console.error('Error deleting task:', error.message);
     }
   };
 
@@ -237,11 +260,17 @@ const AdminDashboard = (props) => {
                     ) : (
                       <button
                         onClick={() => handleEdit(index)}
-                        className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-bold"
+                        className="bg-blue-500 text-white px-4 py-2 my-4 rounded-full text-sm font-bold"
                       >
                         Edit
                       </button>
                     )}
+                     <button
+                onClick={() => handleDelete(index, task.id)}
+                className="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold"
+              >
+                Delete
+              </button>
                   </td>
                 </tr>
               ))}
@@ -372,10 +401,7 @@ const AdminDashboard = (props) => {
                 >
                   Create Task Form
                 </button>
-               
-          
-
-                
+ 
           )}
         </div>
       </div>

@@ -25,10 +25,19 @@ const UserDashboard = (props) => {
     const fetchUserTasks = async () => {
       try {
         const user = auth.currentUser;
+        console.log(user)
+        const usersCollection = collection(firestore, 'users')
+        const userQuery = query(usersCollection, where('uid', '==', user.uid));
+        const usersSnapshot = await getDocs(userQuery);
+        const usersData = usersSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        console.log("user name:", usersData);
+
         const tasksCollection = collection(firestore, 'tasks');
-        const userTasksQuery = query(tasksCollection, where('assignee', '==', user.uid));
+        const userTasksQuery = await query(tasksCollection, where('assignee', '==', usersData[0].name));
         const userTasksSnapshot = await getDocs(userTasksQuery);
         const userTasksData = userTasksSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        console.log("user tasks data:", userTasksData);
+
         setUserTasks(userTasksData);
       } catch (error) {
         console.error('Error fetching user tasks:', error.message);
