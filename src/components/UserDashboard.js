@@ -189,7 +189,7 @@ const UserDashboard = (props) => {
                     </td>
                     <td className="border py-2 px-4">{task.assignee}</td>
                     <td className="border py-2 px-4">
-                      {task.endDate < new Date().toISOString() ? (
+                      {task.endDate < new Date().toISOString() && task.status !== "Completed" ? (
                         <>
                           {editingTaskId === task.id ? (
                             <textarea
