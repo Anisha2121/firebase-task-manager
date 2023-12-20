@@ -18,6 +18,7 @@ const UserDashboard = (props) => {
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editedStatus, setEditedStatus] = useState('');
   const [editedRemark, setEditedRemark] = useState('');
+  const [startDateMap, setStartDateMap] = useState({});
 
   const setUser = () => {
     props.isUserProp(false);
@@ -49,8 +50,16 @@ const UserDashboard = (props) => {
     setEditedRemark(newRemark);
   };
 
-  const handleStatusChange = (newStatus) => {
+  const handleStatusChange = async (newStatus) => {
     setEditedStatus(newStatus);
+
+    // Update start date when status changes to "In Progress"
+    if (newStatus === 'In Progress' && editingTaskId) {
+      setStartDateMap((prevStartDateMap) => ({
+        ...prevStartDateMap,
+        [editingTaskId]: new Date().toISOString(),
+      }));
+    }
   };
 
   const handleSaveClick = async (taskId) => {
@@ -95,13 +104,42 @@ const UserDashboard = (props) => {
         );
       }
 
+      // Save the days count to Firestore
+      if (startDateMap[taskId] && editedStatus === 'Completed') {
+        const daysTaken = calculateDaysTaken(startDateMap[taskId], new Date().toISOString());
+
+        // Update the days count in the Firestore database
+        await updateDoc(taskRef, {
+          daysTaken: daysTaken,
+        });
+
+        // Update the local state with the edited days count
+        setUserTasks((prevTasks) =>
+          prevTasks.map((task) =>
+            task.id === taskId
+              ? {
+                  ...task,
+                  daysTaken: daysTaken,
+                }
+              : task
+          )
+        );
+      }
+
       // Clear the editing state
       setEditingTaskId(null);
       setEditedStatus('');
       setEditedRemark('');
     } catch (error) {
-      console.error('Error updating task status and remark:', error.message);
+      console.error('Error updating task status, remark, and days count:', error.message);
     }
+  };
+
+  const calculateDaysTaken = (startDate, endDate) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffInMilliseconds = Math.abs(end - start);
+    return Math.ceil(diffInMilliseconds / (1000 * 60 * 60 * 24));
   };
 
   useEffect(() => {
@@ -161,6 +199,7 @@ const UserDashboard = (props) => {
                   <th className="py-2 px-4">Status</th>
                   <th className="py-2 px-4">Assignee</th>
                   <th className="py-2 px-4">Remark</th>
+                  <th className="py-2 px-4">Days Taken</th>
                   <th className="py-2 px-4">Actions</th>
                 </tr>
               </thead>
@@ -213,6 +252,13 @@ const UserDashboard = (props) => {
                         </>
                       ) : (
                         task.remark
+                      )}
+                    </td>
+                    <td className="border py-2 px-4">
+                      {task.status === 'Completed' && startDateMap[task.id] ? (
+                        calculateDaysTaken(startDateMap[task.id], task.endDate)
+                      ) : (
+                        'N/A'
                       )}
                     </td>
                     <td className="border py-2 px-4">
