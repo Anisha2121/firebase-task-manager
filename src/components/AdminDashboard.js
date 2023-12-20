@@ -1,6 +1,15 @@
 import { getAuth, signOut } from '@firebase/auth';
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, addDoc, query, orderBy,updateDoc,doc,deleteDoc } from '@firebase/firestore';
+import {
+  collection,
+  getDocs,
+  addDoc,
+  query,
+  orderBy,
+  updateDoc,
+  doc,
+  deleteDoc,
+} from '@firebase/firestore';
 import firestore from '../config/firebaseConfig';
 
 const AdminDashboard = (props) => {
@@ -13,6 +22,8 @@ const AdminDashboard = (props) => {
     priority: '',
     status: '',
     assignee: '',
+    daysTaken: '',
+    remarks: '',   
   });
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [users, setUsers] = useState([]);
@@ -33,7 +44,7 @@ const AdminDashboard = (props) => {
 
   const createTask = async (event) => {
     try {
-        event.preventDefault();
+      event.preventDefault();
       const tasksCollection = collection(firestore, 'tasks');
       const newTaskRef = await addDoc(tasksCollection, newTask);
       setTasks([...tasks, { id: newTaskRef.id, ...newTask }]);
@@ -45,6 +56,8 @@ const AdminDashboard = (props) => {
         priority: '',
         status: '',
         assignee: '',
+        daysTaken: '',
+        remarks: '',
       });
       setShowCreateForm(false);
       setEditableTask(null);
@@ -57,17 +70,15 @@ const AdminDashboard = (props) => {
     const taskToEdit = { ...tasks[index], index };
     setEditableTask(taskToEdit);
   };
-  
 
   const handleSaveEdit = async () => {
     try {
       const editedTask = { ...editableTask };
       const tasksCollection = collection(firestore, 'tasks');
       const taskDocRef = doc(firestore, 'tasks', tasks[editableTask.index].id);
-  
-      
+
       await updateDoc(taskDocRef, editedTask);
-  
+
       setTasks((prevTasks) => {
         const updatedTasks = [...prevTasks];
         updatedTasks[editableTask.index] = editedTask;
@@ -84,7 +95,6 @@ const AdminDashboard = (props) => {
       const tasksCollection = collection(firestore, 'tasks');
       const taskDocRef = doc(firestore, 'tasks', taskId);
 
-     
       await deleteDoc(taskDocRef);
 
       // Update the UI by removing the task from the tasks state
@@ -137,147 +147,195 @@ const AdminDashboard = (props) => {
     }
   };
 
-  return ( <>
-        
-        <button
-          onClick={logout}
-          className="bg-blue-500 text-white px-8 py-3 rounded-full text-lg font-bold mb-6 w-small"
-          style={{ position: 'absolute', top: 0, right: 0 }}
-        >
-          Logout
-        </button>
-  
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
-      <div className="">
-        <h1 className="text-3xl font-semibold mb-6 text-center">Admin Dashboard</h1>
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Task List:</h2>
-          <table className="w-full border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border p-3">Project ID</th>
-                <th className="border p-3">Task Name</th>
-                <th className="border p-3">Start Date</th>
-                <th className="border p-3">End Date</th>
-                <th className="border p-3">Priority</th>
-                <th className="border p-3">Status</th>
-                <th className="border p-3">Assignee</th>
-                <th className="border p-3">Edit</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tasks.map((task, index) => (
-                <tr key={task.id} className="text-center">
-                  <td className="border p-3">
-                    {editableTask && editableTask.index === index ? (
-                      <input type="text" name="projectId" value={editableTask.projectId} onChange={handleInputChange} />
-                    ) : (
-                      task.projectId
-                    )}
-                  </td>
-                  <td className="border p-3">
-                    {editableTask && editableTask.index === index ? (
-                      <input type="text" name="taskName" value={editableTask.taskName} onChange={handleInputChange} />
-                    ) : (
-                      task.taskName
-                    )}
-                  </td>
-                  <td className="border p-3">
-                    {editableTask && editableTask.index === index ? (
-                      <input type="date" name="startDate" value={editableTask.startDate} onChange={handleInputChange} />
-                    ) : (
-                      task.startDate
-                    )}
-                  </td>
-                  <td className="border p-3">
-                    {editableTask && editableTask.index === index ? (
-                      <input type="date" name="endDate" value={editableTask.endDate} onChange={handleInputChange} />
-                    ) : (
-                      task.endDate
-                    )}
-                  </td>
-                  <td className="border p-3">
-                    {editableTask && editableTask.index === index ? (
-                      <select
-                        name="priority"
-                        value={editableTask.priority}
-                        onChange={handleInputChange}
-                        className="border rounded w-full p-2"
-                      >
-                        <option value="">Select Priority</option>
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
-                      </select>
-                    ) : (
-                      task.priority
-                    )}
-                  </td>
-                  <td className="border p-3">
-                    {editableTask && editableTask.index === index ? (
-                      <select
-                        name="status"
-                        value={editableTask.status}
-                        onChange={handleInputChange}
-                        className="border rounded w-full p-2"
-                      >
-                        <option value="">Select Status</option>
-                        <option value="todo">To-Do</option>
-                        <option value="inProgress">In Progress</option>
-                        <option value="completed">Completed</option>
-                      </select>
-                    ) : (
-                      task.status
-                    )}
-                  </td>
-                  <td className="border p-3">
-                    {editableTask && editableTask.index === index ? (
-                      <select
-                        name="assignee"
-                        value={editableTask.assignee}
-                        onChange={handleInputChange}
-                        className="border rounded w-full p-2"
-                      >
-                        <option value="">Select Assignee</option>
-                        {users.map((user) => (
-                          <option key={user.id} value={user.name}>
-                            {user.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      task.assignee
-                    )}
-                  </td>
-                  <td className="border p-3">
-                    {editableTask && editableTask.index === index ? (
-                      <button
-                        onClick={() => handleSaveEdit(index)}
-                        className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-bold"
-                      >
-                        Save
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleEdit(index)}
-                        className="bg-blue-500 text-white px-4 py-2 my-4 rounded-full text-sm font-bold"
-                      >
-                        Edit
-                      </button>
-                    )}
-                     <button
-                onClick={() => handleDelete(index, task.id)}
-                className="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold"
-              >
-                Delete
-              </button>
-                  </td>
+  return (
+    <>
+      <button
+        onClick={logout}
+        className="bg-blue-500 text-white px-8 py-3 rounded-full text-lg font-bold mb-6 w-small"
+        style={{ position: 'absolute', top: 0, right: 0 }}
+      >
+        Logout
+      </button>
+
+      <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
+        <div className="">
+          <h1 className="text-3xl font-semibold mb-6 text-center">Admin Dashboard</h1>
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">Task List:</h2>
+            <table className="w-full border-collapse border border-gray-300">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="border p-3">Project ID</th>
+                  <th className="border p-3">Task Name</th>
+                  <th className="border p-3">Start Date</th>
+                  <th className="border p-3">End Date</th>
+                  <th className="border p-3">Priority</th>
+                  <th className="border p-3">Status</th>
+                  <th className="border p-3">Assignee</th>
+                  <th className="border p-3">Days Taken</th>
+                  <th className="border p-3">Remarks</th>
+                  <th className="border p-3">Edit</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div>
+              </thead>
+              <tbody>
+                {tasks.map((task, index) => (
+                  <tr key={task.id} className="text-center">
+                    <td className="border p-3">
+                      {editableTask && editableTask.index === index ? (
+                        <input
+                          type="text"
+                          name="projectId"
+                          value={editableTask.projectId}
+                          onChange={handleInputChange}
+                        />
+                      ) : (
+                        task.projectId
+                      )}
+                    </td>
+                    <td className="border p-3">
+                      {editableTask && editableTask.index === index ? (
+                        <input
+                          type="text"
+                          name="taskName"
+                          value={editableTask.taskName}
+                          onChange={handleInputChange}
+                        />
+                      ) : (
+                        task.taskName
+                      )}
+                    </td>
+                    <td className="border p-3">
+                      {editableTask && editableTask.index === index ? (
+                        <input
+                          type="date"
+                          name="startDate"
+                          value={editableTask.startDate}
+                          onChange={handleInputChange}
+                        />
+                      ) : (
+                        task.startDate
+                      )}
+                    </td>
+                    <td className="border p-3">
+                      {editableTask && editableTask.index === index ? (
+                        <input
+                          type="date"
+                          name="endDate"
+                          value={editableTask.endDate}
+                          onChange={handleInputChange}
+                        />
+                      ) : (
+                        task.endDate
+                      )}
+                    </td>
+                    <td className="border p-3">
+                      {editableTask && editableTask.index === index ? (
+                        <select
+                          name="priority"
+                          value={editableTask.priority}
+                          onChange={handleInputChange}
+                          className="border rounded w-full p-2"
+                        >
+                          <option value="">Select Priority</option>
+                          <option value="high">High</option>
+                          <option value="medium">Medium</option>
+                          <option value="low">Low</option>
+                        </select>
+                      ) : (
+                        task.priority
+                      )}
+                    </td>
+                    <td className="border p-3">
+                      {editableTask && editableTask.index === index ? (
+                        <select
+                          name="status"
+                          value={editableTask.status}
+                          onChange={handleInputChange}
+                          className="border rounded w-full p-2"
+                        >
+                          <option value="">Select Status</option>
+                          <option value="todo">To-Do</option>
+                          <option value="inProgress">In Progress</option>
+                          <option value="completed">Completed</option>
+                        </select>
+                      ) : (
+                        task.status
+                      )}
+                    </td>
+                    <td className="border p-3">
+                      {editableTask && editableTask.index === index ? (
+                        <select
+                          name="assignee"
+                          value={editableTask.assignee}
+                          onChange={handleInputChange}
+                          className="border rounded w-full p-2"
+                        >
+                          <option value="">Select Assignee</option>
+                          {users.map((user) => (
+                            <option key={user.id} value={user.name}>
+                              {user.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        task.assignee
+                      )}
+                    </td>
+                    <td className="border p-3">
+                      {editableTask && editableTask.index === index ? (
+                        <input
+                          type="text"
+                          name="daysTaken"
+                          value={editableTask.daysTaken}
+                          onChange={handleInputChange}
+                        />
+                      ) : (
+                        task.daysTaken
+                      )}
+                    </td>
+                    <td className="border p-3">
+                      {editableTask && editableTask.index === index ? (
+                        <input
+                          type="text"
+                          name="remarks"
+                          value={editableTask.remark}
+                          onChange={handleInputChange}
+                        />
+                      ) : (
+                        task.remark
+                      )}
+                    </td>
+                    <td className="border p-3">
+                      {editableTask && editableTask.index === index ? (
+                        <button
+                          onClick={() => handleSaveEdit(index)}
+                          className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-bold"
+                        >
+                          Save
+                        </button>
+                      ) : (
+                        <div>
+                          <button
+                            onClick={() => handleEdit(index)}
+                            className="bg-blue-500 text-white px-4 py-2 my-4 rounded-full text-sm font-bold"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(index, task.id)}
+                            className="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div>
           {showCreateForm ? (
             <div>
               <h2 className="text-2xl font-semibold mb-4">Create Task</h2>
@@ -374,6 +432,29 @@ const AdminDashboard = (props) => {
                       ))}
                   </select>
                 </label>
+                <label className="block mb-2">
+                    Days Taken:
+                    <input
+                      required
+                      type="text"
+                      name="daysTaken"
+                      value={newTask.daysTaken}
+                      onChange={handleInputChange}
+                      className="border rounded w-full p-2"
+                    />
+                  </label>
+                  <label className="block mb-2">
+                    Remarks:
+                    <input
+                      required
+                      type="text"
+                      name="remarks"
+                      value={newTask.remark}
+                      onChange={handleInputChange}
+                      className="border rounded w-full p-2"
+                    />
+                  </label>
+
                 <button
                   type="submit"
                   
@@ -403,9 +484,10 @@ const AdminDashboard = (props) => {
                 </button>
  
           )}
+
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 };
