@@ -161,7 +161,7 @@ const AdminDashboard = (props) => {
         <div className="">
           <h1 className="text-3xl font-semibold mb-6 text-center">Admin Dashboard</h1>
           <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Task List:</h2>
+           
             <table className="w-full border-collapse border border-gray-300">
               <thead>
                 <tr className="bg-gray-200">
@@ -288,6 +288,7 @@ const AdminDashboard = (props) => {
                           name="daysTaken"
                           value={editableTask.daysTaken}
                           onChange={handleInputChange}
+                          disabled
                         />
                       ) : (
                         task.daysTaken
@@ -432,28 +433,8 @@ const AdminDashboard = (props) => {
                       ))}
                   </select>
                 </label>
-                <label className="block mb-2">
-                    Days Taken:
-                    <input
-                      required
-                      type="text"
-                      name="daysTaken"
-                      value={newTask.daysTaken}
-                      onChange={handleInputChange}
-                      className="border rounded w-full p-2"
-                    />
-                  </label>
-                  <label className="block mb-2">
-                    Remarks:
-                    <input
-                      required
-                      type="text"
-                      name="remarks"
-                      value={newTask.remark}
-                      onChange={handleInputChange}
-                      className="border rounded w-full p-2"
-                    />
-                  </label>
+               
+                 
 
                 <button
                   type="submit"
